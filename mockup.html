@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Circle — Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --vanilla:    #fff1bf;
+    --peach:      #fcd4b7;
+    --powder:     #f9b8ae;
+    --cotton:     #f69ba6;
+    --petal:      #f27e9e;
+    --rose:       #ef6295;
+    --wild:       #ec458d;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1a0a12;
+    font-family: 'Nunito', sans-serif;
+  }
+
+  /* ── PHONE FRAME ─────────────────────────────────────── */
+  .phone {
+    width: 390px;
+    height: 844px;
+    border-radius: 52px;
+    background: linear-gradient(160deg,
+      var(--vanilla) 0%,
+      var(--peach)   25%,
+      var(--powder)  50%,
+      var(--cotton)  72%,
+      var(--wild)    100%
+    );
+    position: relative;
+    overflow: hidden;
+    box-shadow:
+      0 0 0 2px rgba(255,255,255,0.3),
+      0 40px 120px rgba(236,69,141,0.6),
+      0 0 80px rgba(236,69,141,0.3);
+  }
+
+  /* ── GRAIN OVERLAY ───────────────────────────────────── */
+  .phone::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.25;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .content {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 20px 16px;
+    gap: 0;
+  }
+
+  /* ── TITLE ───────────────────────────────────────────── */
+  .title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 28px;
+    color: white;
+    text-shadow: 0 2px 12px rgba(236,69,141,0.5);
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+  }
+
+  /* ── GLASSMORPHISM SCORE BAR ─────────────────────────── */
+  .top-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .gauge-pill {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.22);
+    backdrop-filter: blur(16px);
+    border: 1.5px solid rgba(255,255,255,0.45);
+    border-radius: 50px;
+    padding: 10px 16px;
+    box-shadow: 0 4px 24px rgba(255,45,85,0.25), inset 0 1px 0 rgba(255,255,255,0.5);
+  }
+
+  .score-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255,255,255,0.22);
+    backdrop-filter: blur(16px);
+    border: 1.5px solid rgba(255,255,255,0.45);
+    border-radius: 50px;
+    padding: 10px 20px;
+    box-shadow: 0 4px 24px rgba(236,69,141,0.18), inset 0 1px 0 rgba(255,255,255,0.5);
+  }
+
+  .score-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.6), 0 1px 3px rgba(0,0,0,0.8);
+  }
+
+  .score-value {
+    font-family: 'Fredoka One', cursive;
+    font-size: 26px;
+    color: white;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.6), 0 1px 3px rgba(0,0,0,0.8), 0 0 20px rgba(0,0,0,0.3);
+    line-height: 1;
+  }
+
+  .score-divider {
+    width: 1.5px;
+    height: 28px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 2px;
+  }
+
+  /* ── TENSION GAUGE ───────────────────────────────────── */
+  .tension-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .tension-ring {
+    position: relative;
+    width: 64px;
+    height: 64px;
+  }
+
+  .tension-ring svg {
+    transform: rotate(-90deg);
+  }
+
+  .tension-ring .bg-ring {
+    fill: none;
+    stroke: rgba(255,255,255,0.2);
+    stroke-width: 4;
+  }
+
+  .tension-ring .fg-ring {
+    fill: none;
+    stroke: #ff2d55;
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-dasharray: 163;
+    stroke-dashoffset: 16;
+    filter: none;
+  }
+
+  @keyframes pulse-ring {
+    from { filter: drop-shadow(0 0 4px #ff2d55); }
+    to   { filter: drop-shadow(0 0 12px #ff2d55) drop-shadow(0 0 20px #ff006680); }
+  }
+
+  .tension-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 16px;
+    color: #ff2d55;
+    text-shadow: none;
+  }
+
+  .tension-text {
+    display: none;
+  }
+
+  /* ── ARENA ───────────────────────────────────────────── */
+  .arena {
+    position: relative;
+    width: 340px;
+    height: 340px;
+    margin-top: 113px;
+  }
+
+  /* danger aura */
+  .danger-aura {
+    position: absolute;
+    inset: -20px;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+      transparent 38%,
+      rgba(255,45,85,0.08) 55%,
+      rgba(255,45,85,0.18) 70%,
+      rgba(255,45,85,0.06) 85%,
+      transparent 100%
+    );
+    animation: aura-pulse 1.5s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+
+  @keyframes aura-pulse {
+    from { opacity: 0.6; transform: scale(1);   }
+    to   { opacity: 1.0; transform: scale(1.04); }
+  }
+
+  /* track ring */
+  .track-ring {
+    position: absolute;
+    inset: 30px;
+    border-radius: 50%;
+    border: 2.5px solid rgba(255,255,255,0.25);
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.08),
+      inset 0 0 30px rgba(255,255,255,0.06),
+      0 0 40px rgba(255,45,85,0.25),
+      0 0 80px rgba(255,45,85,0.12);
+    animation: ring-danger 1.5s ease-in-out infinite alternate;
+  }
+
+  @keyframes ring-danger {
+    from { box-shadow: 0 0 0 1px rgba(255,255,255,0.08), inset 0 0 30px rgba(255,255,255,0.06), 0 0 30px rgba(255,45,85,0.2), 0 0 60px rgba(255,45,85,0.1); }
+    to   { box-shadow: 0 0 0 1px rgba(255,255,255,0.12), inset 0 0 30px rgba(255,255,255,0.08), 0 0 50px rgba(255,45,85,0.4), 0 0 100px rgba(255,45,85,0.2); }
+  }
+
+  /* center orb (current item) */
+  .center-item {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.18);
+    backdrop-filter: blur(12px);
+    border: 2px solid rgba(255,255,255,0.5);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 34px;
+    color: white;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    box-shadow:
+      0 8px 32px rgba(0,0,0,0.12),
+      inset 0 2px 4px rgba(255,255,255,0.5),
+      inset 0 -2px 4px rgba(0,0,0,0.08);
+    animation: center-breathe 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes center-breathe {
+    from { transform: translate(-50%, -50%) scale(1);    box-shadow: 0 8px 32px rgba(0,0,0,0.12), inset 0 2px 4px rgba(255,255,255,0.5); }
+    to   { transform: translate(-50%, -50%) scale(1.06); box-shadow: 0 12px 40px rgba(0,0,0,0.18), inset 0 2px 4px rgba(255,255,255,0.6), 0 0 20px rgba(255,255,255,0.2); }
+  }
+
+  /* ── ORBS ────────────────────────────────────────────── */
+  .orb {
+    position: absolute;
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 22px;
+    color: white;
+    cursor: pointer;
+    transform: translate(-50%, -50%);
+    transition: transform 0.15s ease;
+  }
+
+  /* Glossy glass marble effect */
+  .orb::before {
+    content: '';
+    position: absolute;
+    top: 6px; left: 10px;
+    width: 55%; height: 35%;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.55);
+    filter: blur(2px);
+    pointer-events: none;
+  }
+
+  .orb::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%,
+      rgba(255,255,255,0.3) 0%,
+      transparent 65%
+    );
+    pointer-events: none;
+  }
+
+  .orb-blue {
+    background: radial-gradient(circle at 35% 30%, #6ec6ff, #1a7fd4 60%, #0d4fa0);
+    box-shadow: 0 6px 24px rgba(26,127,212,0.5), 0 2px 8px rgba(0,0,0,0.2), inset 0 -3px 6px rgba(0,0,0,0.15);
+  }
+  .orb-rose {
+    background: radial-gradient(circle at 35% 30%, #ffb3d0, #ef6295 60%, #c0356a);
+    box-shadow: 0 6px 24px rgba(239,98,149,0.5), 0 2px 8px rgba(0,0,0,0.2), inset 0 -3px 6px rgba(0,0,0,0.15);
+  }
+  .orb-peach {
+    background: radial-gradient(circle at 35% 30%, #ffe8d0, #f4a261 60%, #c97428);
+    box-shadow: 0 6px 24px rgba(244,162,97,0.5), 0 2px 8px rgba(0,0,0,0.2), inset 0 -3px 6px rgba(0,0,0,0.15);
+  }
+  .orb-mint {
+    background: radial-gradient(circle at 35% 30%, #b8f5df, #2ecc71 60%, #1a8a4a);
+    box-shadow: 0 6px 24px rgba(46,204,113,0.5), 0 2px 8px rgba(0,0,0,0.2), inset 0 -3px 6px rgba(0,0,0,0.15);
+  }
+  .orb-purple {
+    background: radial-gradient(circle at 35% 30%, #d4b3ff, #9b59b6 60%, #6c3483);
+    box-shadow: 0 6px 24px rgba(155,89,182,0.5), 0 2px 8px rgba(0,0,0,0.2), inset 0 -3px 6px rgba(0,0,0,0.15);
+  }
+  .orb-op {
+    background: radial-gradient(circle at 35% 30%, #80f7f0, #00e9d8 60%, #00a89a);
+    box-shadow: 0 6px 24px rgba(0,233,216,0.5), 0 2px 8px rgba(0,0,0,0.2), inset 0 -3px 6px rgba(0,0,0,0.15);
+    color: white;
+  }
+
+  /* ── BOTTOM UI ───────────────────────────────────────── */
+  .bottom-ui {
+    margin-top: auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .next-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.18);
+    backdrop-filter: blur(16px);
+    border: 1.5px solid rgba(255,255,255,0.4);
+    border-radius: 50px;
+    padding: 10px 22px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), 0 4px 16px rgba(0,0,0,0.08);
+  }
+
+  .next-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.65);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+
+  .next-orb {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 17px;
+    color: white;
+    position: relative;
+  }
+
+  .next-orb::before {
+    content: '';
+    position: absolute;
+    top: 4px; left: 7px;
+    width: 55%; height: 35%;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.5);
+    filter: blur(1.5px);
+  }
+
+  .best-row {
+    display: flex;
+    gap: 12px;
+  }
+
+  .stat-chip {
+    background: rgba(255,255,255,0.14);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.75);
+    display: flex; gap: 6px; align-items: center;
+  }
+
+  .stat-chip span {
+    color: white;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="content">
+
+    <!-- TOP ROW : jauge + score séparés -->
+    <div class="top-row">
+      <div class="gauge-pill">
+        <div class="tension-wrap">
+          <div class="tension-ring">
+            <svg width="64" height="64" viewBox="0 0 64 64">
+              <circle class="bg-ring" cx="32" cy="32" r="26"/>
+              <circle class="fg-ring" cx="32" cy="32" r="26"/>
+            </svg>
+            <div class="tension-label">18</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="score-bar">
+        <div>
+          <div class="score-label">Score</div>
+          <div class="score-value">24 680</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ARENA -->
+    <div class="arena">
+      <div class="danger-aura"></div>
+      <div class="track-ring"></div>
+
+      <!-- CENTER ITEM -->
+      <div class="center-item">+</div>
+
+      <!-- ORBS on circle (r=140, center=170) -->
+      <script>
+        const orbsData = [
+          { val: '3', angle: 0 },
+          { val: '7', angle: 0.72 },
+          { val: '3', angle: 1.44 },
+          { val: '+', angle: 2.16 },
+          { val: '5', angle: 2.88 },
+          { val: '3', angle: 3.6  },
+          { val: '2', angle: 4.32 },
+          { val: '7', angle: 5.04 },
+          { val: '1', angle: 5.76 },
+        ];
+        const OPERATORS = ['+', '-', '×', '/'];
+        document.addEventListener('DOMContentLoaded', () => {
+          const arena = document.querySelector('.arena');
+          const R = 168, CX = 170, CY = 170;
+          orbsData.forEach(o => {
+            const x = CX + R * Math.sin(o.angle);
+            const y = CY - R * Math.cos(o.angle);
+            const div = document.createElement('div');
+            const isOp = OPERATORS.includes(o.val);
+            div.className = `orb ${isOp ? 'orb-op' : 'orb-blue'}`;
+            div.textContent = o.val;
+            div.style.left = x + 'px';
+            div.style.top  = y + 'px';
+            arena.appendChild(div);
+          });
+        });
+      </script>
+    </div>
+
+    <!-- BOTTOM UI -->
+    <div class="bottom-ui">
+      <div class="next-pill">
+        <div class="next-label">Prochain</div>
+        <div class="next-orb orb-blue" style="background:radial-gradient(circle at 35% 30%,#6ec6ff,#1a7fd4 60%,#0d4fa0);box-shadow:0 4px 16px rgba(26,127,212,0.4);">4</div>
+      </div>
+      <div class="best-row">
+        <div class="stat-chip">🎯 Coups <span>47</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
