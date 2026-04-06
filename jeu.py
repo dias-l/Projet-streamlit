@@ -63,6 +63,9 @@ async def main(page: ft.Page):
             except Exception:
                 pass
 
+    import time as _time
+    from datetime import date as _date
+
     def generer_item():
         return random.randint(1, 7) if random.random() < 0.75 else random.choice(ORBS)
 
@@ -75,11 +78,23 @@ async def main(page: ft.Page):
         "score_live":    0,
         "moves_live":    0,
         "max_seen_live": 0,
+        "clicks_live":   0,
+        "combo_live":    0,      # étapes de combo dans la partie actuelle (max)
+        "combo_actuel":  0,      # étapes du combo en cours
+        "nb_99_live":    0,      # combien de fois =99 dans cette partie
+        "start_time":    _time.time(),
         "last_score":    donnees.get("last_score",  0),
         "last_moves":    donnees.get("last_moves",  0),
         "last_max":      donnees.get("last_max",    0),
         "best_score":    donnees.get("best_score",  0),
         "total_score":   donnees.get("total_score", 0),
+        "total_clicks":  donnees.get("total_clicks", 0),
+        "total_time":    donnees.get("total_time",   0),
+        "total_games":   donnees.get("total_games",  0),
+        "all_time_max":  donnees.get("all_time_max", 0),
+        "streak":        donnees.get("streak",       0),
+        "last_played":   donnees.get("last_played",  ""),
+        "history":       donnees.get("history",      []),
         "achievements":  set(donnees.get("unlocked_achievements", [])),
     }
 
@@ -109,13 +124,42 @@ async def main(page: ft.Page):
 
     # ── 2. SAUVEGARDE / SUCCÈS ────────────────────────────────────────────────
     def sauvegarder(fin=False):
+        today = str(_date.today())
         if fin:
+            duree = int(_time.time() - etat["start_time"])
             etat["last_score"]   = etat["score_live"]
             etat["last_moves"]   = etat["moves_live"]
             etat["last_max"]     = etat["max_seen_live"]
             etat["total_score"] += etat["score_live"]
+            etat["total_clicks"]+= etat["clicks_live"]
+            etat["total_time"]  += duree
+            etat["total_games"] += 1
             if etat["score_live"] > etat["best_score"]:
                 etat["best_score"] = etat["score_live"]
+            if etat["max_seen_live"] > etat["all_time_max"]:
+                etat["all_time_max"] = etat["max_seen_live"]
+            # Streak
+            last = etat["last_played"]
+            from datetime import timedelta
+            yesterday = str(_date.today() - timedelta(days=1))
+            if last == today:
+                pass  # déjà joué aujourd'hui
+            elif last == yesterday:
+                etat["streak"] += 1
+            else:
+                etat["streak"] = 1
+            etat["last_played"] = today
+            # Historique (max 50 parties)
+            entree = {
+                "date":   today,
+                "score":  etat["score_live"],
+                "moves":  etat["moves_live"],
+                "max":    etat["max_seen_live"],
+                "clicks": etat["clicks_live"],
+                "duree":  duree,
+            }
+            etat["history"].append(entree)
+            etat["history"] = etat["history"][-50:]
         with open("stats.json", "w", encoding="utf-8") as f:
             json.dump({
                 "last_score":  etat["last_score"],
@@ -123,8 +167,15 @@ async def main(page: ft.Page):
                 "last_max":    etat["last_max"],
                 "best_score":  etat["best_score"],
                 "total_score": etat["total_score"],
+                "total_clicks":etat["total_clicks"],
+                "total_time":  etat["total_time"],
+                "total_games": etat["total_games"],
+                "all_time_max":etat["all_time_max"],
+                "streak":      etat["streak"],
+                "last_played": etat["last_played"],
+                "history":     etat["history"],
                 "unlocked_achievements": list(etat["achievements"]),
-            }, f, indent=4)
+            }, f, indent=4, ensure_ascii=False)
 
     def notifier(msg, couleur="green"):
         page.snack_bar = ft.SnackBar(
@@ -407,7 +458,7 @@ async def main(page: ft.Page):
             width=taille, height=taille,
             border_radius=taille / 2,
             clip_behavior=ft.ClipBehavior.ANTI_ALIAS,
-            border=ft.border.all(3, couleur),
+            border=ft.Border.all(3, couleur),
             opacity=opacite,
             scale=0.1,
             left=cx - taille / 2,
@@ -638,21 +689,22 @@ async def main(page: ft.Page):
         etat["score_live"]     = 0
         etat["moves_live"]     = 0
         etat["max_seen_live"]  = 0
+        etat["clicks_live"]    = 0
+        etat["combo_live"]     = 0
+        etat["combo_actuel"]   = 0
+        etat["nb_99_live"]     = 0
+        etat["start_time"]     = _time.time()
         etat["game_over"]      = False
         etat["animating"]      = False
         dessiner_ui()
 
-    bouton_rejouer = ft.ElevatedButton(
-        "🔄 Nouvelle Partie",
-        on_click=lambda e: page.run_task(reset_jeu, e),
-        color="white", bgcolor="blue700"
-    )
 
     # ── 9. CHORÉGRAPHIE PRINCIPALE ────────────────────────────────────────────
     async def clic_insertion(e, index_gauche, gap_angle):
         if etat["game_over"] or etat["animating"]:
             return
         etat["animating"] = True
+        etat["clicks_live"] += 1
         try:
             couche_ui.controls.clear()
             couche_fond.controls.clear()
@@ -686,8 +738,8 @@ async def main(page: ft.Page):
                     new_i = i if i <= index_gauche else i + 1
                     angles.append(angle_proche(nd["angle"], new_i * step + offset))
                 await anim_pivoter(etat["cercle"], angles)
-                fly_in.bgcolor       = "blue"
-                fly_in.content.color = "white"
+                fly_in.bgcolor       = couleur_orb(item)
+                fly_in.content.color = COL_TXT
                 page.update()
                 nouveau = {"val": item, "outer": fly_out, "inner": fly_in, "angle": gap_angle}
                 etat["cercle"].insert(index_gauche + 1, nouveau)
@@ -715,11 +767,18 @@ async def main(page: ft.Page):
                 ajouter_score(valeur)
                 if valeur > etat["max_seen_live"]:
                     etat["max_seen_live"] = valeur
+                # Succès valeur atteinte
+                if valeur >= 50:  debloquer("first_50",  "Mi-chemin")
+                if valeur >= 1000: debloquer("fusion_1000", "Millier d'un coup")
+                if valeur >= 1_000_000: debloquer("orb_1m", "Mégaorb")
 
                 # ── EXPLOSION ≥ 99 ────────────────────────────────────────────
                 if valeur >= 99:
                     if valeur == 99:
+                        etat["nb_99_live"] += 1
                         debloquer("big_99", "Le Compte est Bon")
+                        if etat["nb_99_live"] >= 3:
+                            debloquer("trois_99", "Triplé Critique")
                         multiplier_score(9)
                         await anim_explosion_99(fly_in, gap_angle, valeur)
                         notifier("💥 99 ! EXPLOSION CRITIQUE !", "purple")
@@ -761,6 +820,7 @@ async def main(page: ft.Page):
                         noeud_ancre = noeud_res
 
                         # ── COMBO ─────────────────────────────────────────────
+                        etat["combo_actuel"] = 0
                         while noeud_ancre in etat["cercle"] and len(etat["cercle"]) >= 3:
                             idx_c = etat["cercle"].index(noeud_ancre)
                             nd_L  = etat["cercle"][(idx_c - 1) % len(etat["cercle"])]
@@ -768,6 +828,14 @@ async def main(page: ft.Page):
 
                             if nd_L["val"] != nd_R["val"]:
                                 break
+
+                            etat["combo_actuel"] += 1
+                            if etat["combo_actuel"] >= etat["combo_live"]:
+                                etat["combo_live"] = etat["combo_actuel"]
+                            if etat["combo_actuel"] >= 3:
+                                debloquer("combo_3", "Triple Fusion")
+                            if etat["combo_actuel"] >= 5:
+                                debloquer("combo_5", "Réaction en Chaîne")
 
                             await asyncio.sleep(PAUSE_COMBO)
                             degeler_rotations()
@@ -792,7 +860,11 @@ async def main(page: ft.Page):
                             if v1 >= 99 or v2 >= 99:
                                 vc = v1 if v1 >= 99 else v2
                                 if vc == 99:
+                                    etat["nb_99_live"] += 1
                                     debloquer("big_99", "Le Compte est Bon")
+                                    debloquer("combo_99", "Combo Critique")
+                                    if etat["nb_99_live"] >= 3:
+                                        debloquer("trois_99", "Triplé Critique")
                                     multiplier_score(9)
                                     await anim_explosion_99(noeud_ancre["inner"], noeud_ancre["angle"], vc)
                                     notifier("💥 99 ! EXPLOSION CRITIQUE !", "purple")
@@ -850,6 +922,22 @@ async def main(page: ft.Page):
                 notifier("💀 GAME OVER !", "red")
                 sauvegarder(fin=True)
 
+            # ── Succès fin de partie ───────────────────────────────────────────
+            if not etat["cercle"] and not etat["game_over"]:
+                # WIN
+                if etat["moves_live"] == 1:
+                    debloquer("win_1", "Perfectionniste")
+                if etat["moves_live"] <= 10:
+                    debloquer("speed_10", "Fulgurant")
+                sauvegarder(fin=True)
+            if etat["score_live"] >= 1_000_000:
+                debloquer("score_1m", "Millionnaire Ultime")
+            if etat["streak"] >= 7:
+                debloquer("streak_7", "Une semaine de feu")
+            if etat["streak"] >= 30:
+                debloquer("streak_30", "Légende")
+            debloquer("millionnaire", "Millionnaire") if etat["total_score"] >= 1_000_000 else None
+
         except Exception as ex:
             print(f"[ERREUR clic_insertion] {ex}")
             import traceback; traceback.print_exc()
@@ -878,7 +966,7 @@ async def main(page: ft.Page):
                 left=50, top=50,
                 border_radius=150,
                 bgcolor=ft.Colors.TRANSPARENT,
-                border=ft.border.all(2, ring_color),
+                border=ft.Border.all(2, ring_color),
                 shadow=ft.BoxShadow(
                     blur_radius=20 if danger else 10,
                     color=ring_shadow,
@@ -920,7 +1008,7 @@ async def main(page: ft.Page):
                         blur_radius=20, spread_radius=2,
                         color="#44000000", offset=ft.Offset(0, 6)
                     ),
-                    border=ft.border.all(2, "white30"),
+                    border=ft.Border.all(2, "white30"),
                 )
             )
 
@@ -1014,9 +1102,9 @@ async def main(page: ft.Page):
         return ft.Container(
             content=content,
             bgcolor="#33ffffff",
-            border=ft.border.all(1.5, "#66ffffff"),
+            border=ft.Border.all(1.5, "#66ffffff"),
             border_radius=50,
-            padding=ft.padding.symmetric(horizontal=20, vertical=10),
+            padding=ft.Padding.symmetric(horizontal=20, vertical=10),
             shadow=ft.BoxShadow(blur_radius=16, color=shadow_color, spread_radius=0),
         )
 
@@ -1025,7 +1113,7 @@ async def main(page: ft.Page):
         width=48, height=48,
         border_radius=24,
         bgcolor=ft.Colors.TRANSPARENT,
-        border=ft.border.all(3, "#ff2d55"),
+        border=ft.Border.all(3, "#ff2d55"),
         content=ft.Container(
             content=taille_texte_ui,
             alignment=ft.Alignment(0, 0),
@@ -1086,9 +1174,9 @@ async def main(page: ft.Page):
                             blur_radius=6, color="#99000000", offset=ft.Offset(0, 1)
                         ))),
         bgcolor="#33ffffff",
-        border=ft.border.all(1.5, "#66ffffff"),
+        border=ft.Border.all(1.5, "#66ffffff"),
         border_radius=50,
-        padding=ft.padding.symmetric(horizontal=16, vertical=10),
+        padding=ft.Padding.symmetric(horizontal=16, vertical=10),
         shadow=ft.BoxShadow(blur_radius=16, color="#44ec458d", spread_radius=0),
         on_click=lambda e: page.run_task(reset_jeu, e),
         ink=True,
@@ -1145,4 +1233,4 @@ async def main(page: ft.Page):
     await reset_jeu()
 
 
-ft.app(main, view=ft.AppView.WEB_BROWSER)
+ft.run(main, view=ft.AppView.WEB_BROWSER)

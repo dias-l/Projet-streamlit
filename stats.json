@@ -1,13 +1,27 @@
 {
-    "last_score": 91,
-    "last_moves": 26,
-    "last_max": 72,
-    "best_score": 8407308800,
-    "total_score": 126109659578,
+    "last_score": 2180,
+    "last_moves": 43,
+    "last_max": 784,
+    "best_score": 2180,
+    "total_score": 2180,
+    "total_clicks": 43,
+    "total_time": 178,
+    "total_games": 1,
+    "all_time_max": 784,
+    "streak": 1,
+    "last_played": "2026-04-06",
+    "history": [
+        {
+            "date": "2026-04-06",
+            "score": 2180,
+            "moves": 43,
+            "max": 784,
+            "clicks": 43,
+            "duree": 178
+        }
+    ],
     "unlocked_achievements": [
-        "over_99",
-        "millionnaire",
-        "big_99",
-        "first_merge"
+        "first_merge",
+        "over_99"
     ]
 }
